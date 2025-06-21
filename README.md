@@ -119,3 +119,6 @@ git commit -m "feat: [5G] Añade scanner de slicing networks"
 ```
 
 ---
+> **Nota sobre BadUSB**: Estos payloads pueden violar leyes de telecomunicaciones.  
+> - Úsalos SOLO en dispositivos de tu propiedad.  
+> - Consulta la [Ley General de Telecomunicaciones (España)](https://www.boe.es/eli/es/l/2014/05/09/9).
