@@ -1,0 +1,2 @@
+mkdir -p docs && cd docs
+touch 5G_Threat_Model.md Setup_HackRF.md Legal_Guidelines_ES.md
