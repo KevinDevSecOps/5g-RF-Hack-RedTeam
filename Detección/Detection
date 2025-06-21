@@ -1,0 +1,10 @@
+# detection/sigma_rule_5g.yml
+title: Detección de gNodeB Falso
+description: Alerta ante PLMN no autorizados
+logsource:
+  product: 5G_core
+detection:
+  selection:
+    plmn_id: 
+      - "99999"  # PLMN reservado
+  condition: selection
