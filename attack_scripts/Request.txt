@@ -1,0 +1,2 @@
+sudo apt install srsran
+chmod +x fake_5g_beacon.sh
