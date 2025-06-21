@@ -1,0 +1,6 @@
+**Uso**:  
+1. Prepara una foto del objetivo (ej: `fake_face.jpg`).  
+2. Ejecuta:  
+   ```bash
+   python3 cam_ai_exploit.py <IP_CAMARA>
+   ```
