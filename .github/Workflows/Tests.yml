@@ -1,0 +1,9 @@
+name: Security Tests
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test gNodeB Spoofer
+        run: python3 attack_scripts/gNodeB_spoofer.py --test
