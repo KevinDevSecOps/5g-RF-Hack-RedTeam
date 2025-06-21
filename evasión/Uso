@@ -1,0 +1,1 @@
+powershell -ExecutionPolicy Bypass -File hide_5g_traffic.ps1
