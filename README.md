@@ -122,3 +122,8 @@ git commit -m "feat: [5G] Añade scanner de slicing networks"
 > **Nota sobre BadUSB**: Estos payloads pueden violar leyes de telecomunicaciones.  
 > - Úsalos SOLO en dispositivos de tu propiedad.  
 > - Consulta la [Ley General de Telecomunicaciones (España)](https://www.boe.es/eli/es/l/2014/05/09/9).
+
+> ⚠️ **ADVERTENCIA**:  
+> - El bypass biométrico solo debe probarse en dispositivos de tu propiedad.  
+> - La manipulación de sistemas de reconocimiento facial puede violar el **RGPD (UE 2016/679)**.  
+> - Estos scripts son para auditorías autorizadas. Consulta siempre con el departamento legal.
