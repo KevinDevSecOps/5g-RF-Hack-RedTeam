@@ -146,4 +146,176 @@ class FiveGDashboard {
             });
         }
 
-        const layout =
+        const layout = {
+            title: '5G Spectrum Analysis',
+            xaxis: { 
+                title: 'Frequency (Hz)',
+                tickformat: '.2s'
+            },
+            yaxis: { title: 'Power (dB)' },
+            height: 500,
+            margin: { l: 60, r: 30, t: 60, b: 60 },
+            showlegend: false
+        };
+
+        Plotly.react('spectrum-plot', plotData, layout);
+    }
+
+    updateDetectionTable(data) {
+        const tableBody = document.querySelector('#detections-table tbody');
+        if (!tableBody) return;
+
+        // Limpiar tabla existente
+        tableBody.innerHTML = '';
+
+        if (data.peaks && data.peaks.length > 0) {
+            data.peaks.forEach(peak => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date().toLocaleTimeString()}</td>
+                    <td>${(peak.frequency / 1e9).toFixed(3)} GHz</td>
+                    <td>${peak.power.toFixed(1)} dB</td>
+                    <td>RF Signal</td>
+                    <td><span class="badge bg-warning">Detected</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        } else {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center">No signals detected</td>
+                </tr>
+            `;
+        }
+    }
+
+    startPeriodicUpdates() {
+        // Actualizar estadísticas cada 3 segundos
+        this.updateIntervals.stats = setInterval(() => {
+            this.updateDashboardStats();
+        }, 3000);
+
+        // Actualizar spectrum cada 2 segundos
+        this.updateIntervals.spectrum = setInterval(() => {
+            this.updateSpectrumData();
+        }, 2000);
+
+        // Verificar conexión cada 10 segundos
+        this.updateIntervals.connection = setInterval(() => {
+            this.checkConnection();
+        }, 10000);
+    }
+
+    async checkConnection() {
+        try {
+            const response = await fetch('/api/system/status', {
+                signal: AbortSignal.timeout(5000)
+            });
+            
+            this.setConnectionStatus(response.ok);
+            
+        } catch (error) {
+            console.error('Connection check failed:', error);
+            this.setConnectionStatus(false);
+        }
+    }
+
+    setConnectionStatus(connected) {
+        const statusBadge = document.getElementById('status-badge');
+        if (!statusBadge) return;
+
+        this.isConnected = connected;
+        
+        if (connected) {
+            statusBadge.className = 'badge bg-success';
+            statusBadge.innerHTML = '<i class="fas fa-circle"></i> Connected';
+        } else {
+            statusBadge.className = 'badge bg-danger';
+            statusBadge.innerHTML = '<i class="fas fa-circle"></i> Disconnected';
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Crear notificación toast de Bootstrap
+        const toastContainer = document.getElementById('toast-container') || this.createToastContainer();
+        
+        const toastId = 'toast-' + Date.now();
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.id = toastId;
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Mostrar el toast
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        // Remover después de que se oculte
+        toast.addEventListener('hidden.bs.toast', () => {
+            toast.remove();
+        });
+    }
+
+    createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    emergencyStop() {
+        if (confirm('Are you sure you want to emergency stop all operations?')) {
+            this.stopScan();
+            this.showNotification('Emergency stop activated', 'danger');
+            
+            // Detener todas las actualizaciones
+            Object.values(this.updateIntervals).forEach(interval => {
+                clearInterval(interval);
+            });
+        }
+    }
+}
+
+// Inicializar dashboard cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    window.fiveGDashboard = new FiveGDashboard();
+});
+
+// Funciones globales para los botones HTML
+function startScan() {
+    if (window.fiveGDashboard) {
+        window.fiveGDashboard.startScan();
+    }
+}
+
+function stopScan() {
+    if (window.fiveGDashboard) {
+        window.fiveGDashboard.stopScan();
+    }
+}
+
+function emergencyStop() {
+    if (window.fiveGDashboard) {
+        window.fiveGDashboard.emergencyStop();
+    }
+}
+
+function capturePackets() {
+    if (window.fiveGDashboard) {
+        window.fiveGDashboard.showNotification('Packet capture started', 'info');
+    }
+}
