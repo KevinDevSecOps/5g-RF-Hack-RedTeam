@@ -1,3 +1,16 @@
+# Añadir estas líneas después de los instaladores de Python
+RUN pip3 install --no-cache-dir \
+    scikit-learn==1.3.0 \
+    tensorflow==2.13.0 \
+    pywavelets==1.4.1 \
+    joblib==1.3.2 \
+    h5py==3.9.0
+
+# Instalar dependencias del sistema para TensorFlow
+RUN apt-get update && apt-get install -y \
+    libhdf5-serial-dev \
+    hdf5-tools \
+    && rm -rf /var/lib/apt/lists/*
 FROM ubuntu:22.04
 
 # Evitar prompts interactivos
