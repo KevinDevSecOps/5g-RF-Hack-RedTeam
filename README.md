@@ -85,7 +85,26 @@ flowchart LR
     D --> D1[sigma_rules]
     E --> E1[HackRF_configs]
 ```
+# 5G RF Hack RedTeam Toolkit
 
+Herramienta completa para pentesting de redes 5G mediante RF.
+
+## 🚀 Características
+
+- Análisis de espectro en tiempo real
+- Dashboard web para monitorización
+- Dockerizado para fácil deployment
+- Módulos de pentesting para 5G
+
+## 📦 Instalación
+
+```bash
+# Con Docker
+docker-compose -f docker/docker-compose.yml up --build
+
+# Manual
+pip install -r requirements.txt
+python main.py --dashboard
 ---
 
 ## 🤝 ¿Cómo Contribuir?
