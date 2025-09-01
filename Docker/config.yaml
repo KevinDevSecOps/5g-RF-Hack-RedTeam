@@ -1,0 +1,51 @@
+general:
+  log_level: INFO
+  output_dir: ./data/output
+  max_file_size: 10485760
+  backup_count: 5
+
+rf:
+  sample_rate: 20000000
+  center_freq: 3500000000
+  gain: 40
+  bandwidth: 20000000
+  if_gain: 20
+  bb_gain: 20
+
+dashboard:
+  host: 0.0.0.0
+  port: 5000
+  debug: false
+  secret_key: "5g-redteam-secret-key-2024"
+
+modules:
+  spectrum_analyzer:
+    enabled: true
+    fft_size: 1024
+    averaging: 10
+  threat_detector:
+    enabled: true
+    threshold: -60
+  packet_capture:
+    enabled: false
+    interface: "hackrf"
+
+logging:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  handlers:
+    file:
+      class: logging.handlers.RotatingFileHandler
+      formatter: standard
+      filename: ./logs/5g_redteam.log
+      maxBytes: 10485760
+      backupCount: 5
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+  root:
+    level: INFO
+    handlers: [console, file]
