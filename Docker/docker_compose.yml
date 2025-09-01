@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  5g-rf-toolkit:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: 5g-rf-redteam
+    privileged: true  # Para acceso a hardware SDR
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"  # Pasar dispositivos USB
+    volumes:
+      - ../data:/app/data
+      - ../logs:/app/logs
+    ports:
+      - "5000:5000"  # Dashboard
+      - "8080:8080"  # API
+    environment:
+      - PYTHONUNBUFFERED=1
