@@ -49,6 +49,7 @@ graph TB
     G --> I
     J --> K
 
+
 ```python
 # Ejemplo de uso ético:
 def main():
