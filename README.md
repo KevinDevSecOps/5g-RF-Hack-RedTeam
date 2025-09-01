@@ -17,6 +17,38 @@
 ## 🔍 ¿Qué encontrarás aquí?
 Herramientas y técnicas para **auditorías de seguridad en redes 5G**, desarrolladas por un equipo de Red Team con certificaciones OSCP/CEH. Todo probado en entornos controlados.
 
+graph TB
+    subgraph "Frontend (Python/Flask)"
+        A[Dashboard Web]
+        B[APIs REST]
+        C[Interfaz Usuario]
+    end
+    
+    subgraph "Backend Core (Python)"
+        D[Lógica de Negocio]
+        E[Gestión de Módulos]
+        F[Base de Datos]
+    end
+    
+    subgraph "Componentes Críticos (Rust)"
+        G[Procesamiento FPGA]
+        H[Auditoría Criptográfica]
+        I[Análisis Tiempo Real]
+    end
+    
+    subgraph "Servicios de Red (Go)"
+        J[Escaneo Distribuido]
+        K[Análisis de Paquetes]
+        L[Servicios Network]
+    end
+    
+    A --> B
+    B --> D
+    D --> G
+    D --> J
+    G --> I
+    J --> K
+
 ```python
 # Ejemplo de uso ético:
 def main():
