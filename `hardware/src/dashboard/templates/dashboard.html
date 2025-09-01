@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - 5G RF RedTeam{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Status Cards -->
+    <div class="col-md-3">
+        <div class="card text-center mb-4">
+            <div class="card-header">
+                <i class="fas fa-wifi fa-2x"></i>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title" id="signal-strength">-- dBm</h5>
+                <p class="card-text">Signal Strength</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center mb-4">
+            <div class="card-header">
+                <i class="fas fa-broadcast-tower fa-2x"></i>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title" id="frequency">-- GHz</h5>
+                <p class="card-text">Center Frequency</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center mb-4">
+            <div class="card-header">
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title" id="threats-detected">0</h5>
+                <p class="card-text">Threats Detected</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center mb-4">
+            <div class="card-header">
+                <i class="fas fa-database fa-2x"></i>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title" id="packets-captured">0</h5>
+                <p class="card-text">Packets Captured</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary mb-2" onclick="startScan()">
+                        <i class="fas fa-play"></i> Start Spectrum Scan
+                    </button>
+                    <button class="btn btn-warning mb-2" onclick="stopScan()">
+                        <i class="fas fa-stop"></i> Stop Scan
+                    </button>
+                    <button class="btn btn-info mb-2" onclick="capturePackets()">
+                        <i class="fas fa-capture"></i> Capture Packets
+                    </button>
+                    <button class="btn btn-danger" onclick="emergencyStop()">
+                        <i class="fas fa-skull-crossbones"></i> Emergency Stop
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Spectrum Preview -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Real-time Spectrum</h5>
+            </div>
+            <div class="card-body">
+                <div id="spectrum-preview" class="spectrum-plot"></div>
+                <div class="mt-3">
+                    <small class="text-muted" id="last-update">Last update: --</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Recent Detections -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-list"></i> Recent Detections</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="detections-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Frequency</th>
+                                <th>Power</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center">No detections yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    updateDashboardStats();
+    startRealTimeUpdates();
+});
+
+function updateDashboardStats() {
+    fetch('/api/dashboard/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('signal-strength').textContent = data.signal_strength + ' dBm';
+            document.getElementById('frequency').textContent = (data.frequency / 1e9).toFixed(2) + ' GHz';
+            document.getElementById('threats-detected').textContent = data.threats_detected;
+            document.getElementById('packets-captured').textContent = data.packets_captured.toLocaleString();
+        });
+}
+
+function startRealTimeUpdates() {
+    // Update stats every 5 seconds
+    setInterval(updateDashboardStats, 5000);
+    
+    // Update spectrum preview
+    updateSpectrumPreview();
+    setInterval(updateSpectrumPreview, 2000);
+}
+
+function updateSpectrumPreview() {
+    fetch('/api/spectrum/data')
+        .then(response => response.json())
+        .then(data => {
+            const plotData = [{
+                x: data.frequencies,
+                y: data.spectrum,
+                type: 'line',
+                line: { color: '#667eea' }
+            }];
+            
+            const layout = {
+                title: 'Real-time Spectrum',
+                xaxis: { title: 'Frequency (Hz)' },
+                yaxis: { title: 'Power (dB)' },
+                height: 300,
+                margin: { l: 50, r: 30, t: 30, b: 50 }
+            };
+            
+            Plotly.react('spectrum-preview', plotData, layout);
+            document.getElementById('last-update').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+        });
+}
+
+function startScan() {
+    fetch('/api/scan/start', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            showAlert('Scan started successfully!', 'success');
+        });
+}
+
+function stopScan() {
+    fetch('/api/scan/stop', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            showAlert('Scan stopped.', 'info');
+        });
+}
+
+function showAlert(message, type) {
+    // Simple alert function
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.querySelector('.container-fluid').prepend(alertDiv);
+}
+</script>
+{% endblock %}
