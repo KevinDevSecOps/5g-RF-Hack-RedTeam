@@ -1,3 +1,8 @@
+# Añadir al inicio de los imports
+from .api.pentesting import pentesting_bp
+
+# En el __init__ del Dashboard, después de registrar blueprints
+self.app.register_blueprint(pentesting_bp)
 def update_stats(self):
         """Actualizar estadísticas (simulado)"""
         # En producción, estos vendrían de monitoreo real
