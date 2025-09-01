@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Spectrum Analyzer - 5G RF RedTeam{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line"></i> Spectrum Analyzer</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-primary btn-scan">
+                                <i class="fas fa-play"></i> Start Scan
+                            </button>
+                            <button class="btn btn-warning btn-stop">
+                                <i class="fas fa-stop"></i> Stop Scan
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="fas fa-cog"></i> Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="spectrum-plot" class="spectrum-plot"></div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6><i class="fas fa-info-circle"></i> Spectrum Info</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Center Freq:</strong><br>
+                                        <span id="center-freq">3.50 GHz</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Bandwidth:</strong><br>
+                                        <span id="bandwidth">20 MHz</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6><i class="fas fa-list"></i> Detected Signals</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="signals-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Freq (GHz)</th>
+                                                <th>Power (dB)</th>
+                                                <th>BW</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="3" class="text-center">No signals detected</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Spectrum-specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar spectrum analyzer
+    if (window.fiveGDashboard) {
+        window.fiveGDashboard.updateSpectrumData();
+        setInterval(() => window.fiveGDashboard.updateSpectrumData(), 2000);
+    }
+});
+</script>
+{% endblock %}
