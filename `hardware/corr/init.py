@@ -1,3 +1,17 @@
+# Añadir al final de la clase FiveGRedTeamCore
+    def initialize_modules(self):
+        """Inicializar el manager de módulos"""
+        try:
+            from src.modules import ModulesManager
+            self.modules_manager = ModulesManager(self)
+            return self.modules_manager.initialize_modules()
+        except Exception as e:
+            self.logger.error(f"Error inicializando módulos: {e}")
+            return False
+
+    def get_modules_manager(self):
+        """Obtener el manager de módulos"""
+        return self.modules_manager
 """
 Core framework for 5G RF RedTeam Toolkit
 """
