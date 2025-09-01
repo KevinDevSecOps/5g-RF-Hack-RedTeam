@@ -39,6 +39,29 @@ def main():
 
 ---
 
+## 📅 Cronograma de Implementación
+
+| Día | Tarea | Estado |
+|-----|-------|--------|
+| 1 | Estructura y Dockerización | ✅ |
+| 2 | Core Framework | 🚧 |
+| 3 | Dashboard Web | 📋 |
+| 4 | Integración y Testing | 📋 |
+| 5 | Documentación y Release | 📋 |
+
+## 🚀 Para Empezar HOY:
+
+1. **Ejecuta estos comandos:**
+```bash
+git clone https://github.com/KevinDevSecOps/5g-RF-Hack-RedTeam.git
+cd 5g-RF-Hack-RedTeam
+
+# Crear estructura de carpetas
+mkdir -p docker src/core src/modules src/dashboard src/utils docs tests templates
+
+# Crear archivos iniciales
+touch docker/Dockerfile docker/docker-compose.yml requirements.txt main.py
+
 ## 📌 Primeros Pasos
 1. **Clona el repo**:
    ```bash
