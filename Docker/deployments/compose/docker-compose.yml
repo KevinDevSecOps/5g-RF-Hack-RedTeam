@@ -1,0 +1,137 @@
+version: '3.8'
+
+x-common-variables: &common-variables
+  REDTEAM_ENV: production
+  LOG_LEVEL: INFO
+  PYTHONUNBUFFERED: 1
+  PROMETHEUS_MULTIPROC_DIR: /tmp
+
+services:
+  # Core Application
+  5g-redteam-core:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/security/Dockerfile.security
+    image: 5g-redteam-core:prod
+    container_name: 5g-redteam-core
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - "/dev/bus/usb:/dev/bus/usb"
+    ports:
+      - "5000:5000"
+      - "9090:9090"  # Metrics
+    environment:
+      <<: *common-variables
+      DATABASE_URL: postgresql://user:pass@postgres:5432/redteam
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - redteam_data:/app/data
+      - redteam_logs:/app/logs
+      - /tmp:/tmp
+    networks:
+      - redteam-net
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: redteam-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: redteam
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgres.conf:/etc/postgresql/postgresql.conf
+    networks:
+      - redteam-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: redteam-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - redteam-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: redteam-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    networks:
+      - redteam-net
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: redteam-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - redteam-net
+    depends_on:
+      - prometheus
+
+volumes:
+  redteam_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+  redteam_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  redteam-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
