@@ -55,7 +55,11 @@ def main():
    ```bash
    python3 tools/gNodeB_scanner.py --freq 3500M
    ```
+# Iniciar con dashboard
+python main.py --dashboard
 
+# Escanear espectro
+curl -X POST http://localhost:5000/api/scan/start
 ---
 
 ## ⚠️ Aviso Legal
