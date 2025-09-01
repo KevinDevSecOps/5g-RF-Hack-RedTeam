@@ -1,2 +1,40 @@
+.PHONY: build run stop logs clean test
+
+build:
+	@echo "Building Docker image..."
+	docker-compose -f docker/docker-compose.yml build
+
+run:
+	@echo "Starting container..."
+	docker-compose -f docker/docker-compose.yml up -d
+
+stop:
+	@echo "Stopping container..."
+	docker-compose -f docker/docker-compose.yml down
+
+logs:
+	@echo "Showing logs..."
+	docker-compose -f docker/docker-compose.yml logs -f
+
+clean:
+	@echo "Cleaning up..."
+	docker-compose -f docker/docker-compose.yml down -v
+	rm -rf data/* logs/* tmp/*
+
+test:
+	@echo "Running tests..."
+	python -m pytest tests/ -v
+
+install:
+	@echo "Running installation script..."
+	chmod +x install.sh
+	./install.sh
+
+status:
+	@echo "Container status:"
+	docker-compose -f docker/docker-compose.yml ps
+
+# Atajo para build + run
+up: build run
 mkdir -p docs && cd docs
 touch 5G_Threat_Model.md Setup_HackRF.md Legal_Guidelines_ES.md
