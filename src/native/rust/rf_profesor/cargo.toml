@@ -1,0 +1,18 @@
+[package]
+name = "rf_processor"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rf_processor"
+crate-type = ["cdylib"]
+
+[dependencies]
+rustfft = "6.1"
+ndarray = "0.15"
+rayon = "1.7"
+libm = "0.2"
+num-complex = "0.4"
+
+[build-dependencies]
+cbindgen = "0.24"
