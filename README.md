@@ -16,7 +16,7 @@
 
 ## 🔍 ¿Qué encontrarás aquí?
 Herramientas y técnicas para **auditorías de seguridad en redes 5G**, desarrolladas por un equipo de Red Team con certificaciones OSCP/CEH. Todo probado en entornos controlados.
-
+```mermaid
 graph TB
     subgraph "Frontend (Python/Flask)"
         A[Dashboard Web]
