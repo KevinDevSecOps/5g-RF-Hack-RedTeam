@@ -1,0 +1,95 @@
+FROM ubuntu:22.04 as builder
+
+# Evitar prompts interactivos
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    libusb-1.0-0-dev \
+    cmake \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Instalar Go
+RUN curl -OL https://golang.org/dl/go1.21.0.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz \
+    && rm go1.21.0.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Construir componentes Rust
+WORKDIR /app/src/native/rust/rf_processor
+COPY src/native/rust/rf_processor .
+RUN cargo build --release --target-dir=/app/build/rust
+
+WORKDIR /app/src/native/rust/crypto_auditor
+COPY src/native/rust/crypto_auditor .
+RUN cargo build --release --target-dir=/app/build/rust
+
+# Construir componentes Go
+WORKDIR /app/src/native/go/packet_inspector
+COPY src/native/go/packet_inspector .
+RUN go build -buildmode=c-shared -o /app/build/go/libpacket_inspector.so
+
+WORKDIR /app/src/native/go/network_mapper
+COPY src/native/go/network_mapper .
+RUN go build -buildmode=c-shared -o /app/build/go/libnetwork_mapper.so
+
+# Stage final minimal
+FROM ubuntu:22.04
+
+# Security hardening
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    libusb-1.0-0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Crear usuario no-root
+RUN groupadd -r redteam && useradd -r -g redteam -m -d /app redteam
+
+# Configurar entorno seguro
+WORKDIR /app
+RUN chown -R redteam:redteam /app
+
+# Copiar componentes construidos
+COPY --from=builder /app/build/rust/release/librf_processor.so .
+COPY --from=builder /app/build/rust/release/libcrypto_auditor.so .
+COPY --from=builder /app/build/go/libpacket_inspector.so .
+COPY --from=builder /app/build/go/libnetwork_mapper.so .
+
+# Copiar aplicación Python
+COPY --chown=redteam:redteam . .
+
+# Instalar dependencias Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Hardening de seguridad
+RUN chmod -R 750 /app \
+    && find /app -type f -name "*.py" -exec chmod 640 {} \; \
+    && chown -R redteam:redteam /app \
+    && usermod -a -G dialout redteam
+
+# Configurar capabilities para SDR
+RUN setcap 'cap_sys_rawio+ep' $(which hackrf_transfer) || true
+
+# Cambiar a usuario no-root
+USER redteam
+
+# Exponer puertos
+EXPOSE 5000 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/api/health || exit 1
+
+# Comando de inicio
+CMD ["python", "main.py", "--production"]
