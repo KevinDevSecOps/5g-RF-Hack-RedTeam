@@ -1,0 +1,46 @@
+name: Deploy 5G RedTeam
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+    
+    - name: Run tests
+      run: python -m pytest tests/ -v
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run security scan
+      run: bash scripts/security_scan.sh
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to production
+      run: bash scripts/deploy.sh production
+      env:
+        DOCKER_HOST: ${{ secrets.DOCKER_HOST }}
+        KUBECONFIG: ${{ secrets.KUBECONFIG }}
