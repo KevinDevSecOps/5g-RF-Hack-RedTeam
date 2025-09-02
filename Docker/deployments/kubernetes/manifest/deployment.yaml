@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 5g-redteam-core
+  namespace: redteam
+  labels:
+    app: 5g-redteam
+    tier: backend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: 5g-redteam
+  template:
+    metadata:
+      labels:
+        app: 5g-redteam
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: 5g-redteam-core
+        image: 5g-redteam-core:prod
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: REDTEAM_ENV
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: redteam-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redteam-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: usb-bus
+          mountPath: /dev/bus/usb
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: redteam-data-pvc
+      - name: logs-volume
+        emptyDir: {}
+      - name: usb-bus
+        hostPath:
+          path: /dev/bus/usb
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: 5g-redteam-service
+  namespace: redteam
+spec:
+  selector:
+    app: 5g-redteam
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: LoadBalancer
