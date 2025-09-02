@@ -1,0 +1,27 @@
+{
+  "dashboard": {
+    "title": "5G RedTeam Monitoring",
+    "panels": [
+      {
+        "title": "RF Spectrum Overview",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(rf_samples_processed_total[5m])",
+            "legendFormat": "Samples Processed"
+          }
+        ]
+      },
+      {
+        "title": "Threat Detection",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "threats_detected_total",
+            "legendFormat": "Total Threats"
+          }
+        ]
+      }
+    ]
+  }
+}
